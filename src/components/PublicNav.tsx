@@ -21,7 +21,7 @@ export default async function PublicNav() {
             </>
           ) : (
             <>
-              <Link href="/auth/sign-in" className="hide-s">Sign in</Link>
+              <Link href="/" className="hide-s">Sign in</Link>
               <Link href="/auth/sign-up" className="btn small">Create account</Link>
             </>
           )}

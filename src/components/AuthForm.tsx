@@ -16,7 +16,7 @@ export default function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     e.preventDefault();
     setError("");
     setBusy(true);
-    const next = search.get("next") || "/learn";
+    const next = search.get("next") || "/";
     const res =
       mode === "sign-up"
         ? await authClient.signUp.email({ name: name.trim(), email: email.trim(), password })
