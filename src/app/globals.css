@@ -265,8 +265,8 @@ textarea.input { height: auto; min-height: 96px; padding: var(--s2) var(--s3); r
   font-weight: 600; font-size: 0.7rem; letter-spacing: 0.02em;
 }
 .rail .who .wt { min-width: 0; line-height: 1.3; }
-.rail .who .wn { font-size: 0.78rem; color: var(--ink); font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rail .who .we { font-size: 0.66rem; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail .who .wn { display: block; font-size: 0.78rem; color: var(--ink); font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail .who .we { display: block; font-size: 0.66rem; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rail .who .out {
   margin-left: auto; flex-shrink: 0; width: 26px; height: 26px; display: grid; place-content: center;
   background: none; border: none; border-radius: 6px; color: var(--ink-faint); cursor: pointer;
@@ -277,6 +277,10 @@ textarea.input { height: auto; min-height: 96px; padding: var(--s2) var(--s3); r
 .main { padding: var(--s5) var(--s6) var(--s8); min-width: 0; }
 .main-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); margin-bottom: var(--s5); flex-wrap: wrap; }
 .main-head h1 { margin: 0; }
+
+/* lesson content column — media never spans the full workbench */
+.lesson-col { max-width: 820px; }
+.lesson-col .video-frame, .lesson-col .pdf-frame { display: block; }
 
 /* reading well */
 .paper {
@@ -342,7 +346,7 @@ a.lesson-row:hover { background: var(--surface-2); text-decoration: none; color:
 /* ───────────────────────── slide viewer ───────────────────────── */
 .slides { display: grid; gap: var(--s3); }
 .slides .stage { position: relative; border: 1px solid var(--line); border-radius: var(--radius); overflow: clip; background: var(--surface); }
-.slides .stage img { display: block; width: 100%; height: auto; }
+.slides .stage img { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: oklch(0.15 0.02 252); }
 .sarr {
   position: absolute; top: 0; bottom: 0; width: 16%; min-width: 52px;
   display: flex; align-items: center; border: none; cursor: pointer; padding: 0 var(--s3);

@@ -50,6 +50,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseS
         </div>
       </div>
 
+      <div className="lesson-col">
       {lesson.kind === "article" && (
         <div className="paper">
           <div className="prose" dangerouslySetInnerHTML={{ __html: md(c.md || "") }} />
@@ -108,6 +109,7 @@ export default async function LessonPage({ params }: { params: Promise<{ courseS
       )}
 
       <MarkComplete lessonId={lesson.id} done={done} nextHref={nextHref} />
+      </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
         {prev ? <Link className="mut" href={`/learn/${courseSlug}/${prev.id}`}>← {prev.title}</Link> : <span />}
