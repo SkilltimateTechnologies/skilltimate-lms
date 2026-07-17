@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { getResult } from "@/services/exams";
 import { md } from "@/lib/md";
+import PassBurst from "@/components/PassBurst";
+import { XP_RULES } from "@/services/game";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Score report" };
@@ -43,6 +45,8 @@ export default async function ResultPage({ params }: { params: Promise<{ attempt
         </div>
       </div>
 
+      {pass && <PassBurst xpNote={`+${XP_RULES.attempt + XP_RULES.pass} XP — ${XP_RULES.attempt} for the attempt, ${XP_RULES.pass} pass bonus`} />}
+      {!pass && <p className="xp-note quiet">+{XP_RULES.attempt} XP for the attempt — every mock counts.</p>}
       <div className={`verdict ${pass ? "pass" : "fail"}`}>
         <div>
           <span className="scaled">{attempt.scaledScore}</span>

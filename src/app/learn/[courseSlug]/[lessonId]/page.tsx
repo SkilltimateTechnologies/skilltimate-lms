@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { courseBySlug, requireAccess, progressMap, markProgress } from "@/services/courses";
 import { md } from "@/lib/md";
-import MarkComplete from "@/components/players/MarkComplete";
+import CourseBar from "@/components/players/CourseBar";
 import SlideViewer from "@/components/players/SlideViewer";
 
 export const dynamic = "force-dynamic";
@@ -108,8 +108,23 @@ export default async function LessonPage({ params }: { params: Promise<{ courseS
         </div>
       )}
 
-      <MarkComplete lessonId={lesson.id} done={done} nextHref={nextHref} />
       </div>
+
+      <CourseBar
+        segments={flat.map((l) => ({
+          id: l.id, title: l.title,
+          done: pm.get(l.id)?.status === "completed",
+          current: l.id === lesson.id,
+          href: `/learn/${courseSlug}/${l.id}`,
+        }))}
+        lessonId={lesson.id}
+        done={done}
+        prevHref={prev ? `/learn/${courseSlug}/${prev.id}` : null}
+        nextHref={nextHref}
+        courseCode={data.course.certCode}
+        index={idx}
+        total={flat.length}
+      />
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
         {prev ? <Link className="mut" href={`/learn/${courseSlug}/${prev.id}`}>← {prev.title}</Link> : <span />}

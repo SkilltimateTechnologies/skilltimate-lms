@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { myCourses } from "@/services/courses";
 import { listExamsForUser } from "@/services/exams";
+import { playerStats, continueTarget } from "@/services/game";
 import RedeemCode from "@/components/RedeemCode";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +10,10 @@ export const metadata = { title: "Dashboard" };
 
 export default async function Dashboard() {
   const session = await requireUser();
-  const [mine, examData] = await Promise.all([myCourses(session.user), listExamsForUser(session.user)]);
+  const [mine, examData, stats, cont] = await Promise.all([
+    myCourses(session.user), listExamsForUser(session.user),
+    playerStats(session.user.id), continueTarget(session.user.id),
+  ]);
   const scored = examData.attempts.filter((a) => a.status !== "in_progress");
   const best = scored.reduce<number | null>((m, a) => (a.scaledScore != null && (m === null || a.scaledScore > m) ? a.scaledScore : m), null);
   const first = session.user.name.split(" ")[0];
@@ -21,6 +25,34 @@ export default async function Dashboard() {
         {best !== null && <span className="tag ok mono">Best mock · {best}/1000</span>}
       </div>
       <div style={{ display: "grid", gap: 24 }}>
+        <section className="gamer">
+          <div className="g-cell g-level">
+            <span className="ring" style={{ ["--p" as never]: stats.maxLevel ? 100 : Math.round((100 * stats.intoLevel) / stats.levelSpan) }}>
+              <b>{stats.level}</b>
+            </span>
+            <div className="g-txt">
+              <span className="g-t">Level {stats.level}</span>
+              <span className="g-s mono">{stats.xp} XP{!stats.maxLevel && ` · ${stats.nextLevelAt - stats.xp} to next`}</span>
+            </div>
+          </div>
+          <div className="g-cell">
+            <span className={`flame${stats.streak > 0 ? " lit" : ""}`} aria-hidden="true">🔥</span>
+            <div className="g-txt">
+              <span className="g-t">{stats.streak > 0 ? `${stats.streak}-day streak` : "Start a streak"}</span>
+              <span className="g-s">{stats.streak > 0 ? "Keep it going today" : "Finish any lesson today"}</span>
+            </div>
+          </div>
+          <div className="g-cell g-week" aria-label="Activity this week">
+            {stats.week.map((d, i) => (
+              <span key={i} className={`wd${d.active ? " on" : ""}${d.today ? " td" : ""}`} title={d.active ? "Active" : "No activity"}>{d.label}</span>
+            ))}
+          </div>
+          {cont && !cont.allDone && (
+            <Link href={`/learn/${cont.courseSlug}/${cont.lessonId}`} className="btn g-cta">
+              Continue: {cont.lessonTitle} →
+            </Link>
+          )}
+        </section>
         <RedeemCode />
         <section>
           <div className="section-head" style={{ marginBottom: 16 }}>
