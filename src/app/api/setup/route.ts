@@ -29,6 +29,12 @@ export async function GET(req: Request) {
     });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    const chain: string[] = [];
+    let cur: unknown = e;
+    while (cur instanceof Error) {
+      chain.push(cur.message);
+      cur = cur.cause;
+    }
+    return NextResponse.json({ error: chain.join(" ← ") || String(e) }, { status: 500 });
   }
 }
