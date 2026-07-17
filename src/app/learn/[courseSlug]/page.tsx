@@ -24,7 +24,12 @@ export default async function CourseHome({ params }: { params: Promise<{ courseS
           <p className="k" style={{ fontFamily: "var(--font-mono)", color: "var(--accent-bright)", margin: 0, fontSize: "0.75rem", letterSpacing: "0.12em" }}>{data.course.certCode}</p>
           <h1>{data.course.title}</h1>
         </div>
-        {next && <Link className="btn" href={`/learn/${courseSlug}/${next.id}`}>{done === 0 ? "Start course" : "Continue"}</Link>}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
+          <span className={`ring lg${pct === 100 ? " done" : ""}`} style={{ ["--p" as never]: pct }} aria-label={`${pct}% complete`}>
+            <b>{pct === 100 ? "✓" : `${pct}%`}</b>
+          </span>
+          {next && <Link className="btn" href={`/learn/${courseSlug}/${next.id}`}>{done === 0 ? "Start course" : "Continue"}</Link>}
+        </div>
       </div>
       <div className="panel" style={{ marginBottom: 24, display: "grid", gap: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>

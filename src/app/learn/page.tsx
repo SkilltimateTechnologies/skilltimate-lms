@@ -38,10 +38,15 @@ export default async function Dashboard() {
                 const pct = totalLessons ? Math.round((100 * completed) / totalLessons) : 0;
                 return (
                   <Link key={course.id} href={`/learn/${course.slug}`} className="course-card">
-                    <span className="code">{course.certCode}</span>
+                    <span className="cc-top">
+                      <span className="code">{course.certCode}</span>
+                      <span className={`ring${pct === 100 ? " done" : ""}`} style={{ ["--p" as never]: pct }} aria-label={`${pct}% complete`}>
+                        <b>{pct === 100 ? "✓" : `${pct}%`}</b>
+                      </span>
+                    </span>
                     <h3>{course.title}</h3>
-                    <div className="pbar" aria-label={`${pct}% complete`}><i style={{ width: `${pct}%` }} /></div>
-                    <span className="meta"><span className="mono">{completed}/{totalLessons} lessons</span><span>{pct}%</span></span>
+                    <div className="pbar"><i style={{ width: `${pct}%` }} /></div>
+                    <span className="meta"><span className="mono">{completed} of {totalLessons} lessons complete</span></span>
                   </Link>
                 );
               })}

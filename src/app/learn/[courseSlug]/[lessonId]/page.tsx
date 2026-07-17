@@ -24,8 +24,10 @@ export default async function LessonPage({ params }: { params: Promise<{ courseS
 
   // opening a lesson marks it started (completion stays sticky)
   await markProgress(session.user, lesson.id, "started");
-  const pm = await progressMap(session.user.id, [lesson.id]);
+  const pm = await progressMap(session.user.id, flat.map((l) => l.id));
   const done = pm.get(lesson.id)?.status === "completed";
+  const courseDone = flat.filter((l) => pm.get(l.id)?.status === "completed").length;
+  const coursePct = flat.length ? Math.round((100 * courseDone) / flat.length) : 0;
   const c = lesson.content as Record<string, any>;
   const nextHref = next ? `/learn/${courseSlug}/${next.id}` : null;
 
@@ -36,10 +38,16 @@ export default async function LessonPage({ params }: { params: Promise<{ courseS
           <p className="faint" style={{ margin: 0, fontSize: "0.8rem" }}>
             <Link href={`/learn/${courseSlug}`} className="mut">{data.course.certCode}</Link>
             {" · "}{lesson.moduleTitle}
+            {" · "}<span className="mono">Lesson {idx + 1} of {flat.length}</span>
           </p>
           <h1 style={{ marginTop: 4 }}>{lesson.title}</h1>
         </div>
-        <span className="kind tag" style={{ flexShrink: 0 }}>{lesson.kind}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+          <span className="kind tag">{lesson.kind}</span>
+          <span className={`ring${coursePct === 100 ? " done" : ""}`} style={{ ["--p" as never]: coursePct }} title={`Course ${coursePct}% complete`} aria-label={`Course ${coursePct}% complete`}>
+            <b>{coursePct === 100 ? "✓" : `${coursePct}%`}</b>
+          </span>
+        </div>
       </div>
 
       {lesson.kind === "article" && (

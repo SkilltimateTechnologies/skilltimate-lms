@@ -26,6 +26,10 @@ function fmt(ms: number) {
   return (h > 0 ? `${h}:` : "") + `${String(m).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
 }
 
+function plain(md: string) {
+  return md.replace(/\*\*(.+?)\*\*/g, "$1").replace(/`(.+?)`/g, "$1").replace(/\n+/g, " ").trim();
+}
+
 /** minimal md → text for stems (bold + code + line breaks) */
 function Stem({ md }: { md: string }) {
   const html = md
@@ -47,6 +51,7 @@ export default function ExamRunner({ attemptId }: { attemptId: string }) {
   const [now, setNow] = useState(Date.now());
   const [saving, setSaving] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [review, setReview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ text: string; err?: boolean } | null>(null);
   const clockOffset = useRef(0);
@@ -293,13 +298,22 @@ export default function ExamRunner({ attemptId }: { attemptId: string }) {
     <div className="runner">
       <div className="runner-top">
         <span className="ex">{state.exam.title}</span>
-        <span className="qpos">Q {idx + 1}/{state.exam.total} · {answered} answered</span>
+        <span className="qpos">Question {idx + 1} of {state.exam.total}</span>
         {saving && <span className="faint" style={{ fontSize: "0.78rem" }} role="status">saving…</span>}
         {state.exam.mode === "simulation" ? (
           <span className={`timer${remaining < 5 * 60_000 ? " low" : ""}`} role="timer" aria-label="Time remaining">{fmt(remaining)}</span>
         ) : (
           <span className="timer" style={{ marginLeft: "auto" }}>practice</span>
         )}
+        <div className="rtrack" aria-label={`${answered} of ${state.exam.total} answered`}>
+          {state.questions.map((qq, i) => {
+            let cls = "";
+            if (responses[qq.questionId] != null) cls = "a";
+            if (flags[qq.questionId]) cls += " f";
+            if (i === idx) cls += " c";
+            return <i key={qq.questionId} className={cls.trim()} />;
+          })}
+        </div>
       </div>
 
       <div className="runner-body">
@@ -318,33 +332,19 @@ export default function ExamRunner({ attemptId }: { attemptId: string }) {
           </div>
         )}
 
-        <div style={{ marginTop: 40 }}>
-          <p className="faint" style={{ fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase" }}>Question palette</p>
-          <div className="qgrid">
-            {state.questions.map((qq, i) => {
-              let cls = "qcell";
-              if (responses[qq.questionId] != null) cls += " answered";
-              if (flags[qq.questionId]) cls += " flagged";
-              if (i === idx) cls += " current";
-              return (
-                <button key={qq.questionId} className={cls} onClick={() => { setIdx(i); setConfirmSubmit(false); window.scrollTo({ top: 0 }); }} aria-label={`Question ${i + 1}`}>
-                  {i + 1}
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       <div className="runner-foot">
         <div className="runner-foot-in">
-          <button className="btn ghost small" disabled={idx === 0} onClick={() => { setIdx(idx - 1); window.scrollTo({ top: 0 }); }}>← Prev</button>
-          <button className="btn ghost small" disabled={idx === state.exam.total - 1} onClick={() => { setIdx(idx + 1); window.scrollTo({ top: 0 }); }}>Next →</button>
+          <button className="btn ghost small" disabled={idx === 0} onClick={() => { setIdx(idx - 1); setConfirmSubmit(false); window.scrollTo({ top: 0 }); }}>← Back</button>
           <button className={`flagbtn${flags[q.questionId] ? " on" : ""}`} onClick={() => flip(q.questionId)}>
-            {flags[q.questionId] ? "⚑ Flagged" : "⚑ Flag for review"}
+            {flags[q.questionId] ? "⚑ Flagged" : "⚑ Flag"}
           </button>
+          <button className="btn ghost small" onClick={() => setReview(true)}>Review</button>
           <span style={{ flex: 1 }} />
-          {confirmSubmit ? (
+          {idx < state.exam.total - 1 ? (
+            <button className="btn small" onClick={() => { setIdx(idx + 1); window.scrollTo({ top: 0 }); }}>Next →</button>
+          ) : confirmSubmit ? (
             <>
               <span className="mut" style={{ fontSize: "0.85rem" }}>
                 {answered < state.exam.total ? `${state.exam.total - answered} unanswered — submit anyway?` : "Submit your paper?"}
@@ -353,10 +353,43 @@ export default function ExamRunner({ attemptId }: { attemptId: string }) {
               <button className="btn ghost small" onClick={() => setConfirmSubmit(false)} disabled={submitting}>Keep working</button>
             </>
           ) : (
-            <button className="btn small" onClick={() => setConfirmSubmit(true)}>Finish exam</button>
+            <button className="btn small" onClick={() => setConfirmSubmit(true)}>Submit exam</button>
           )}
         </div>
       </div>
+
+      {review && (
+        <>
+          <div className="drawer-veil" onClick={() => setReview(false)} />
+          <aside className="drawer" role="dialog" aria-label="Review questions">
+            <h2>Review</h2>
+            <div className="qsum">
+              <span><b>{answered}</b> answered</span>
+              <span><b>{state.exam.total - answered}</b> remaining</span>
+              <span><b>{state.questions.filter((qq) => flags[qq.questionId]).length}</b> flagged</span>
+            </div>
+            <div className="qlist">
+              {state.questions.map((qq, i) => (
+                <button
+                  key={qq.questionId}
+                  className={`qrow${i === idx ? " current" : ""}`}
+                  onClick={() => { setIdx(i); setReview(false); setConfirmSubmit(false); window.scrollTo({ top: 0 }); }}
+                >
+                  <span className="qn">Q{i + 1}</span>
+                  <span className="qs">{plain(qq.stemMd)}</span>
+                  {flags[qq.questionId] && <span className="fl">⚑</span>}
+                  <span className={`st${responses[qq.questionId] != null ? " a" : ""}`} aria-label={responses[qq.questionId] != null ? "answered" : "unanswered"} />
+                </button>
+              ))}
+            </div>
+            <p className="faint" style={{ fontSize: "0.8rem", marginTop: 16 }}>Submitting is on the last question — jump there when you&apos;re ready.</p>
+            <div className="drawer-actions">
+              <button className="btn ghost small" onClick={() => setReview(false)}>Close</button>
+              <button className="btn small" onClick={() => { setIdx(state.exam.total - 1); setReview(false); window.scrollTo({ top: 0 }); }}>Go to last question</button>
+            </div>
+          </aside>
+        </>
+      )}
 
       {toast && <div className={`toast${toast.err ? " err" : ""}`} role="status" onAnimationEnd={() => setToast(null)}>{toast.text}</div>}
     </div>
