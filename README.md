@@ -42,11 +42,11 @@ BETTER_AUTH_URL=http://localhost:3000
    - `BETTER_AUTH_SECRET` = *(fresh 32+ char random string)*
    - `BETTER_AUTH_URL` = `https://learn.skilltimate.com`
 3. Build command: `npm run build` · Start command: `npm run start` (binds `$PORT`).
-4. First deploy only — run once against Turso (locally with the production env vars, or in a Railway shell):
-   ```bash
-   npm run db:push
-   npm run db:seed
+4. First deploy only — open this URL once in your browser (use your `BETTER_AUTH_SECRET` value as the key):
    ```
+   https://<your-app-domain>/api/setup?key=YOUR_BETTER_AUTH_SECRET
+   ```
+   It creates all tables and seeds the starter content. It refuses to run twice — once any course exists it becomes a no-op, so it can never wipe data. (The CLI path `npm run db:push && npm run db:seed` still works if you prefer.)
 5. Point `learn.skilltimate.com` at the Railway service; add `video.skilltimate.com` as the Gumlet CNAME.
 
 ## Seeded accounts & content

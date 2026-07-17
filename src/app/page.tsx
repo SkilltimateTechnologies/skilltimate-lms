@@ -9,12 +9,29 @@ export const metadata = { title: "Skilltimate Learn — Sign in" };
 export const dynamic = "force-dynamic";
 
 export default async function Gateway() {
-  const session = await getSession();
-  if (session) {
-    const role = session.user.role;
-    redirect(role === "admin" || role === "instructor" ? "/studio" : "/learn");
+  let stats;
+  try {
+    const session = await getSession();
+    if (session) {
+      const role = session.user.role;
+      redirect(role === "admin" || role === "instructor" ? "/studio" : "/learn");
+    }
+    stats = await platformStats();
+  } catch (e) {
+    if ((e as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+    // Database not initialized yet (fresh deploy) — show setup instructions
+    return (
+      <main className="gate-auth" style={{ minHeight: "100dvh" }}>
+        <div className="auth-card">
+          <span className="brand" style={{ marginBottom: 20, display: "inline-flex" }}>Skilltimate<span className="dot">·</span>Learn</span>
+          <h1 style={{ fontSize: "1.3rem" }}>One step left</h1>
+          <p className="mut">This instance is deployed but its database hasn&apos;t been initialized. Open this URL once, replacing the key with your <code className="mono">BETTER_AUTH_SECRET</code> value:</p>
+          <p className="mono" style={{ fontSize: "0.8rem", wordBreak: "break-all", background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 8, padding: "0.7rem" }}>/api/setup?key=YOUR_SECRET</p>
+          <p className="mut" style={{ fontSize: "0.85rem" }}>It creates the tables and seeds the starter content, then this page becomes the sign-in.</p>
+        </div>
+      </main>
+    );
   }
-  const stats = await platformStats();
 
   return (
     <main className="gate">
